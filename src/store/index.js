@@ -1,0 +1,93 @@
+import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers } from 'redux';
+
+import homeReducer from './home';
+import { loadState } from '../browser-storage';
+
+const defaultPrivateKey = `-----BEGIN RSA PRIVATE KEY-----
+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
+-----END RSA PRIVATE KEY-----`;
+
+const defaultPublicKey = `-----BEGIN RSA PUBLIC KEY-----
+MIICCgKCAgEA3vtpu9zNq3IJw1dUNIX6kzW2kRFZFl6Gi6jh4XsQvgh1kguNAgub
+cBjOz0yo9rGenRw96ZD1EB3rgPOiU4QEqRONrrcJXtXXvSs89PubjGq/EEac2Gkm
+Xn92u6SRIsLtOc+RcMTnbTTT0Oyuh61mbU8FrmUphsPCEN8Pop7KFqEqBFGat+Jp
+hrJCXD9FPqwbYnFSeTGlYdRwuOxgszcstYSvyiJJGYzd+YN2ucmZu8ZBT29joyhZ
+6iDG0sh13Q7u4nSf1DSsu+8bqh4uB5FsohhK3s9Ts48kZAXGQswWaBy078e8rhXg
+QdpEFP1J494q2ThGnWN2lx84YQ2r3+Vurb+MiqMnqBY8CWTadJrhxMq09Wq2lMf0
+R3YXLdo3O4zsBiuxYk5XZNld3UoUvLNvWpPtPv2sgf0BSIuHBibZCAppEoaIBwwH
+sGQh5QjX27fJBqEjWJ4ucvXDOFh4KM19fJRvXM2d3sw4S7aWwf12Jh9LC34wH8lO
+yvdcKkc3NN/RpXE0ham+xWkclxjCpnptdCBQ+OT4Qc/U+iXCPCPFKaE0rI8yedtH
+/odrL68zEQxqvrV8mFrh+tkTryEJHDfOTsQL4aU1qwA3Y0XDZKTUR/XDHP54Kbhz
+vERfJV98iqeGEmc70NXvIRy5DzrPWtTXxrz2mOQqg0DWEsimj/htxlMCAwEAAQ==
+-----END RSA PUBLIC KEY-----`;
+
+const reducers = combineReducers({
+  home: homeReducer,
+});
+
+const prevState = loadState();
+
+export const store = configureStore({
+  devTools: true,
+  reducer: reducers,
+  preloadedState: prevState
+    ? prevState
+    : {
+        home: {
+          privateKey: defaultPrivateKey,
+          publicKey: defaultPublicKey,
+          name: '',
+          email: '',
+          token: '',
+        },
+      },
+});
